@@ -8,30 +8,29 @@ axios.defaults.withCredentials = true;
 const Validation = (values) => {
     let errors = {};
 
-
-    if (!values.firstname.trim()) {
+    if (values.firstname !== undefined && !values.firstname.trim()) {
         errors.firstname = "First Name is required";
     }
-    if (!values.lastname.trim()) {
+    if (values.lastname !== undefined && !values.lastname.trim()) {
         errors.lastname = "Last Name is required";
     }
-    if (!values.username.trim()) {
+    if (values.username !== undefined && !values.username.trim()) {
         errors.username = "Username is required";
     }
-    if (!values.password.trim()) {
-        errors.password = "Password is required";
-    } else if (values.password.length < 8) {
-        errors.password = "Password must be at least 8 characters long";
+    if (values.password !== undefined) {
+        if (!values.password.trim()) {
+            errors.password = "Password is required";
+        } else if (values.password.length < 8) {
+            errors.password = "Password must be at least 8 characters long";
+        }
     }
-
-
-    if (!values.education) {
+    if (values.education !== undefined && !values.education) {
         errors.education = "Education level is required";
     }
-    if (!values.academic) {
+    if (values.academic !== undefined && !values.academic) {
         errors.academic = "Academic area is required";
     }
-    if (!values.gender) {
+    if (values.gender !== undefined && !values.gender) {
         errors.gender = "Gender is required";
     }
 
@@ -51,16 +50,17 @@ const Settings = () => {
 
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
+    const [initialData, setInitialData] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
         axios.get('http://localhost:8081/user-details')
             .then(response => {
                 setFormData(response.data);
+                setInitialData(response.data);
             })
             .catch(error => {
                 if (error.response && error.response.status === 401) {
-
                     navigate('/login', { state: { message: "Please login to access this page" } });
                 } else {
                     console.error('Error fetching user details:', error);
@@ -74,27 +74,30 @@ const Settings = () => {
             ...prevData,
             [name]: value
         }));
-
-   
         setSuccessMessage('');
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
 
-        const validationErrors = Validation(formData);
+        const changedData = Object.keys(formData).reduce((acc, key) => {
+            if (formData[key] !== initialData[key]) {
+                acc[key] = formData[key];
+            }
+            return acc;
+        }, {});
+
+        const validationErrors = Validation(changedData);
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
-
-            axios.put('http://localhost:8081/update-user', formData, { withCredentials: true })
+            axios.put('http://localhost:8081/update-user', changedData, { withCredentials: true })
                 .then(response => {
                     setSuccessMessage('Your details have been updated successfully.');
+                    setInitialData(formData); // Update initial data to the new data
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 401) {
-
                         navigate('/login', { state: { message: "Please login to access this page" } });
                     } else {
                         console.error('Error updating user details:', error);

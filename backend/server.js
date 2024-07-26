@@ -170,24 +170,64 @@ app.get('/user-details', isAuthenticated, async (req, res) => {
 });
 
 app.put('/update-user', async (req, res) => {
-    const userId = req.user.id; 
+    const userId = req.session.user;
     const { firstname, lastname, username, password, education, academic, gender } = req.body;
-    
-    if (!firstname || !lastname || !username || !password || !education || !academic || !gender) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
 
     try {
+        // Get current user details from the database
+        const result = await pool.query('SELECT * FROM Users WHERE id = $1', [userId]);
+        const currentUser = result.rows[0];
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Check if the provided password is different from the current one
+        let hashedPassword = currentUser.password;
+        if (password && password !== currentUser.password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
 
+        // Construct the update query dynamically based on the provided fields
+        const updates = [];
+        const values = [];
+        let index = 1;
 
-        await pool.query(
-            `UPDATE Users
-             SET firstname = $1, lastname = $2, username = $3, password = $4, education = $5, academic = $6, gender = $7
-             WHERE id = $8`,
-            [firstname, lastname, username, hashedPassword, education, academic, gender, userId]
-        );
+        if (firstname && firstname !== currentUser.firstname) {
+            updates.push(`firstname = $${index++}`);
+            values.push(firstname);
+        }
+        if (lastname && lastname !== currentUser.lastname) {
+            updates.push(`lastname = $${index++}`);
+            values.push(lastname);
+        }
+        if (username && username !== currentUser.username) {
+            updates.push(`username = $${index++}`);
+            values.push(username);
+        }
+        if (hashedPassword !== currentUser.password) {
+            updates.push(`password = $${index++}`);
+            values.push(hashedPassword);
+        }
+        if (education && education !== currentUser.education) {
+            updates.push(`education = $${index++}`);
+            values.push(education);
+        }
+        if (academic && academic !== currentUser.academic) {
+            updates.push(`academic = $${index++}`);
+            values.push(academic);
+        }
+        if (gender && gender !== currentUser.gender) {
+            updates.push(`gender = $${index++}`);
+            values.push(gender);
+        }
+
+        if (updates.length === 0) {
+            return res.json({ message: 'No fields to update' });
+        }
+
+        // Add userId to the values array for the WHERE clause
+        values.push(userId);
+
+        const query = `UPDATE Users SET ${updates.join(', ')} WHERE id = $${index}`;
+        await pool.query(query, values);
+
         res.json({ message: 'User details updated successfully' });
     } catch (err) {
         console.error('Error updating user details:', err);

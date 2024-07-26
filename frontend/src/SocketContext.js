@@ -7,7 +7,7 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io('http://localhost:8081'); // Adjust the URL as needed
+        const newSocket = io('http://localhost:8081'); 
         setSocket(newSocket);
 
         return () => {

@@ -9,7 +9,7 @@ const Logout = () => {
         axios.get('http://localhost:8081/logout', { withCredentials: true })
             .then(response => {
                 if (response.status === 200) {
-                    navigate('/login', { state: { message: 'You have been logged out' } }); // Redirect to login page with a message
+                    navigate('/login', { state: { message: 'You have been logged out' } }); 
                 } else {
                     console.error('Logout failed');
                 }
@@ -19,7 +19,7 @@ const Logout = () => {
             });
     }, [navigate]);
 
-    return null; // No button, just an empty component
+    return null;
 };
 
 export default Logout;

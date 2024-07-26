@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import alarmSound from '../assets/timer.mp3';
 
 const Timer = () => {
-    const [workTime, setWorkTime] = useState(25 * 60); // default 25 minutes
-    const [breakTime, setBreakTime] = useState(5 * 60); // default 5 minutes
+    const [workTime, setWorkTime] = useState(25 * 60); 
+    const [breakTime, setBreakTime] = useState(5 * 60); 
     const [time, setTime] = useState(workTime);
     const [isRunning, setIsRunning] = useState(false);
     const [isWorkTime, setIsWorkTime] = useState(true);

@@ -12,15 +12,15 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: 'http://localhost:3000', // Your frontend URL
+        origin: 'http://localhost:3000', 
         methods: ['GET', 'POST'],
         credentials: true
     }
 });
 
 app.use(cors({
-    origin: 'http://localhost:3000', // Replace with your frontend URL
-    credentials: true // Allow credentials (cookies, headers, etc.)
+    origin: 'http://localhost:3000', 
+    credentials: true 
 }));
 
 app.use(express.json());
@@ -29,8 +29,8 @@ app.use(session({
     secret: 'your_secure_key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to `true` for HTTPS
-    maxAge: 1000 * 60 * 60 * 24 // One day in milliseconds
+    cookie: { secure: false }, 
+    maxAge: 1000 * 60 * 60 * 24
 }));
 
 const pool = new Pool({
@@ -38,15 +38,15 @@ const pool = new Pool({
     user: "postgres",
     password: "Supershadow123",
     database: "Users",
-    port: 5432 // Default PostgreSQL port
+    port: 5432 
 });
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     socket.on('createRoom', () => {
-        const roomId = uuidv4(); // Generate a unique room ID
-        rooms.set(roomId, new Set()); // Initialize an empty set of users for the room
+        const roomId = uuidv4(); 
+        rooms.set(roomId, new Set()); 
         rooms.get(roomId).add(socket.id);
         socket.join(roomId);
         console.log(roomId);
@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
         if (rooms.has(roomId)) {
             socket.join(roomId);
             rooms.get(roomId).add(socket.id);
-            io.to(roomId).emit('roomJoined', roomId);// Notify other users in the room
+            io.to(roomId).emit('roomJoined', roomId);
             console.log(rooms);
         } else {
             console.log("I got here")
@@ -88,7 +88,6 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('updateTasks', tasks);
     });
 
-    // Handle widget updates
     socket.on('widgetUpdate', (data) => {
         const { roomId, widget, position } = data;
         io.to(roomId).emit('widgetUpdate', { widget, position });
@@ -108,7 +107,7 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('undo');
     });
 
-    // Handle redo event
+
     socket.on('redo', (data) => {
         const { roomId } = data;
         socket.to(roomId).emit('redo');
@@ -117,12 +116,11 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        // Remove the socket from all rooms
         rooms.forEach((users, roomId) => {
             if (users.has(socket.id)) {
                 users.delete(socket.id);
                 if (users.size === 0) {
-                    rooms.delete(roomId); // Optionally remove empty rooms
+                    rooms.delete(roomId); 
                 }
             }
         });
@@ -144,7 +142,6 @@ app.post('/signup', async (req, res) => {
     const { username, password, lastname, firstname, gender, education, academic } = req.body;
 
     try {
-        // Hash the password before storing it
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const values = [username, hashedPassword, lastname, firstname, gender, education, academic];
@@ -173,19 +170,18 @@ app.get('/user-details', isAuthenticated, async (req, res) => {
 });
 
 app.put('/update-user', async (req, res) => {
-    const userId = req.user.id; // Adjust this according to your authentication setup
+    const userId = req.user.id; 
     const { firstname, lastname, username, password, education, academic, gender } = req.body;
     
-    // Input validation
     if (!firstname || !lastname || !username || !password || !education || !academic || !gender) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     try {
-        // Hash the new password
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update user details
+
         await pool.query(
             `UPDATE Users
              SET firstname = $1, lastname = $2, username = $3, password = $4, education = $5, academic = $6, gender = $7
@@ -232,7 +228,7 @@ app.get('/logout', (req, res) => {
         if (err) {
             return res.status(500).send('Failed to logout');
         }
-        res.clearCookie('connect.sid'); // Clear the cookie associated with the session
+        res.clearCookie('connect.sid'); 
         res.status(200).send('Logout successful');
     });
 });

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './Settings.css'; // Import the CSS file for styling
+import './Settings.css'; 
 
 axios.defaults.withCredentials = true;
 
 const Validation = (values) => {
     let errors = {};
 
-    // Check for empty fields
+
     if (!values.firstname.trim()) {
         errors.firstname = "First Name is required";
     }
@@ -24,7 +24,7 @@ const Validation = (values) => {
         errors.password = "Password must be at least 8 characters long";
     }
 
-    // Check for valid education and academic fields
+
     if (!values.education) {
         errors.education = "Education level is required";
     }
@@ -54,14 +54,13 @@ const Settings = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch the user details from the server to populate the form
-        axios.get('http://localhost:8081/user-details') // Adjust the endpoint as needed
+        axios.get('http://localhost:8081/user-details')
             .then(response => {
                 setFormData(response.data);
             })
             .catch(error => {
                 if (error.response && error.response.status === 401) {
-                    // Redirect to login page with a message
+
                     navigate('/login', { state: { message: "Please login to access this page" } });
                 } else {
                     console.error('Error fetching user details:', error);
@@ -76,26 +75,26 @@ const Settings = () => {
             [name]: value
         }));
 
-        // Clear success message when user starts editing again
+   
         setSuccessMessage('');
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Validate form data
+
         const validationErrors = Validation(formData);
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
-            // Send updated data to the server
-            axios.put('http://localhost:8081/update-user', formData, { withCredentials: true }) // Adjust the endpoint as needed
+
+            axios.put('http://localhost:8081/update-user', formData, { withCredentials: true })
                 .then(response => {
                     setSuccessMessage('Your details have been updated successfully.');
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 401) {
-                        // Redirect to login page with a message
+
                         navigate('/login', { state: { message: "Please login to access this page" } });
                     } else {
                         console.error('Error updating user details:', error);

@@ -12,19 +12,19 @@ function Login() {
         password: ''
     });
     const navigate = useNavigate();
-    const location = useLocation(); // Use useLocation to access the state
+    const location = useLocation(); 
     const [errors, setErrors] = useState({});
     const [serverMessage, setServerMessage] = useState('');
 
     useEffect(() => {
-        // Check if there's a message in the location state
+
         if (location.state && location.state.message) {
             setServerMessage(location.state.message);
         }
     }, [location.state]);
 
     const handleInput = (event) => {
-        // Update state with normal values, not arrays
+
         setValues(prev => ({ ...prev, [event.target.name]: event.target.value }));
     };
 
@@ -32,13 +32,13 @@ function Login() {
         event.preventDefault();
         console.log("Form values:", values);
 
-        // Perform validation and get errors
+
         const validationErrors = Validation(values);
         setErrors(validationErrors);
 
         console.log("Validation errors:", validationErrors);
 
-        // Check if there are no errors
+
         if (Object.keys(validationErrors).length === 0) {
             console.log("Attempting to post");
             console.log(values);
@@ -74,7 +74,7 @@ function Login() {
                             name='username' 
                             onChange={handleInput} 
                             className='form-control rounded-0'
-                            value={values.username} // Ensure input reflects state
+                            value={values.username} 
                         />
                         {errors.username && <span className='text-danger'>{errors.username}</span>}
                     </div>
@@ -86,7 +86,7 @@ function Login() {
                             name='password' 
                             onChange={handleInput} 
                             className='form-control rounded-0'
-                            value={values.password} // Ensure input reflects state
+                            value={values.password}
                         />
                         {errors.password && <span className='text-danger'>{errors.password}</span>}
                     </div>

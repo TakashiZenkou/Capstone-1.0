@@ -68,7 +68,6 @@ const Sidebar = ({ roomId, children }) => {
         });
     
         socket.on('widgetUpdate', (data) => {
-            // Update widget positions based on data.widget and data.position
         });
     
         return () => {
@@ -122,7 +121,6 @@ const Sidebar = ({ roomId, children }) => {
         } else if (widget === 'timer') {
             setTimerPosition({ x, y });
         } else if (widget === 'whiteboard') {
-            // Position logic for Whiteboard if needed
         }
 
         e.preventDefault();
@@ -142,7 +140,7 @@ const Sidebar = ({ roomId, children }) => {
             onClick: handleBackgroundClick
         },
         {
-            path: "#",  // No path for chat; handled with onClick
+            path: "#",  
             name: "ChatRoom",
             icon: <IoIosChatboxes />,
             onClick: toggleChat
@@ -232,7 +230,7 @@ const Sidebar = ({ roomId, children }) => {
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
-                                zIndex: 4,
+                                zIndex: 0,
                             }}
                         />
                         <div style={{ position: 'absolute', bottom: 10, left: 10, zIndex: 5 }}>
@@ -280,7 +278,7 @@ const Sidebar = ({ roomId, children }) => {
                 )}
                 {showChat && <Chat roomId={roomId} />}
                 {showWhiteboard && (
-                        <WhiteboardWidget roomId = { roomId }/>
+                        <WhiteboardWidget roomId ={ roomId }/>
                 )}
                 <div className="upper-right-box">
                     <div className="box-title">My Room</div>

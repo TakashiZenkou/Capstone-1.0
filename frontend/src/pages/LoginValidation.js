@@ -4,7 +4,7 @@ function Validation(values) {
     const username_pattern = /^[A-Za-z]\w{5,29}$/;
     const password_pattern = /^(?=.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
 
-    console.log('Validating:', values); // Debugging log
+    console.log('Validating:', values); 
     console.log(values.username[0]);
 
     if (values.username[0].trim() === "") {
@@ -19,7 +19,7 @@ function Validation(values) {
         error.password = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one digit or special character";
     }
 
-    console.log('Errors:', error); // Debugging log
+    console.log('Errors:', error); 
 
     return error;
 }

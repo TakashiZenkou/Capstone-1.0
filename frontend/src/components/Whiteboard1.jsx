@@ -90,8 +90,8 @@ const WhiteboardWidget = ({ roomId }) => {
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        canvas.width = 400; // Fixed width
-        canvas.height = 300; // Fixed height
+        canvas.width = 400; 
+        canvas.height = 300;
 
         const handleDrawing = (data) => {
             const canvas = canvasRef.current;
@@ -118,11 +118,11 @@ const WhiteboardWidget = ({ roomId }) => {
         };
 
         const handleUndo = () => {
-            undo(); // Trigger local undo
+            undo(); 
         };
 
         const handleRedo = () => {
-            redo(); // Trigger local redo
+            redo(); 
         };
 
         socket.on('drawing', handleDrawing);

@@ -42,12 +42,12 @@ const Chat = ({ roomId }) => {
         e.preventDefault();
         if (message.trim() && roomId) {
             socket.emit('sendMessage', { roomId, message, username});
-            setMessage(''); // Clear the input after sending
+            setMessage(''); 
         }
     };
 
     return (
-        <div className="chat-widget">
+        <div className="chat-widget" >
             <div className="chat-messages">
                 {messages.map((msg, index) => (
                     <div key={index} className="chat-message">

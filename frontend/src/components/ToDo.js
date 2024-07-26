@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useSocket } from '../SocketContext';
+import './ToDo.css';
 
-
-const ToDo = () => {
+const ToDo = ({ roomId }) => {
+    console.log(roomId);
+    const socket = useSocket();
     const [tasks, setTasks] = useState([]);
     const [taskInput, setTaskInput] = useState('');
     const [priority, setPriority] = useState('Low');
     const [showCompleted, setShowCompleted] = useState(false);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('updateTasks', (newTasks) => {
+                console.log(newTasks);
+                setTasks(newTasks);
+            });
+
+            return () => {
+                socket.off('updateTasks');
+            };
+        }
+    }, [socket]);
 
     const handleInputChange = (e) => {
         setTaskInput(e.target.value);
@@ -25,24 +41,28 @@ const ToDo = () => {
                 priority,
                 completed: false
             };
-            setTasks([...tasks, newTask]);
+            const updatedTasks = [...tasks, newTask];
+            setTasks(updatedTasks);
+            socket.emit('updateTasks', { roomId, tasks: updatedTasks });
             setTaskInput('');
             setPriority('Low');
         }
     };
 
     const handleRemoveTask = (id) => {
-        const newTasks = tasks.filter(task => task.id !== id);
-        setTasks(newTasks);
+        const updatedTasks = tasks.filter(task => task.id !== id);
+        setTasks(updatedTasks);
+        socket.emit('updateTasks', { roomId, tasks: updatedTasks });
     };
 
     const toggleCompletion = (id) => {
-        const newTasks = tasks.map(task =>
+        const updatedTasks = tasks.map(task =>
             task.id === id
                 ? { ...task, completed: !task.completed }
                 : task
         );
-        setTasks(newTasks);
+        setTasks(updatedTasks);
+        socket.emit('updateTasks', { roomId, tasks: updatedTasks });
     };
 
     const sortedTasks = tasks.sort((a, b) => {

@@ -81,11 +81,39 @@ io.on('connection', (socket) => {
         console.log(data);
     });
 
+    socket.on('updateTasks', ({ roomId, tasks }) => {
+        console.log(tasks);
+        console.log(roomId);
+        rooms[roomId] = tasks;
+        socket.to(roomId).emit('updateTasks', tasks);
+    });
+
     // Handle widget updates
     socket.on('widgetUpdate', (data) => {
         const { roomId, widget, position } = data;
         io.to(roomId).emit('widgetUpdate', { widget, position });
     });
+
+    socket.on('drawing', (data) => {
+        const { roomId, type, x, y, color, brushSize } = data;
+        socket.to(roomId).emit('drawing', { type, x, y, color, brushSize });
+    });
+
+    socket.on('clearCanvas', (roomId) => {
+        socket.to(roomId).emit('clearCanvas');
+    });
+
+    socket.on('undo', (data) => {
+        const { roomId } = data;
+        socket.to(roomId).emit('undo');
+    });
+
+    // Handle redo event
+    socket.on('redo', (data) => {
+        const { roomId } = data;
+        socket.to(roomId).emit('redo');
+    });
+
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);

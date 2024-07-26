@@ -21,7 +21,7 @@ const Sidebar = ({ roomId, children }) => {
     const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
     const [isBackgroundPopupOpen, setIsBackgroundPopupOpen] = useState(false);
-    const [showWhiteboard, setShowWhiteboard] = useState(true);
+    const [showWhiteboard, setShowWhiteboard] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
     const [showTodo, setShowTodo] = useState(false);
     const [timerPosition, setTimerPosition] = useState({ x: 0, y: 0 });
@@ -159,7 +159,7 @@ const Sidebar = ({ roomId, children }) => {
             icon: <CgNotes />
         },
         {
-            path: "/whiteboard",
+            path: "#",
             name: "Whiteboard",
             icon: <FaChalkboard />,
             onClick: () => setShowWhiteboard(prev => !prev)
@@ -275,19 +275,12 @@ const Sidebar = ({ roomId, children }) => {
                         draggable 
                         onDragStart={(e) => handleDragStart(e, 'todo')}
                     >
-                        <ToDo />
+                        <ToDo roomId={roomId}/>
                     </div>
                 )}
                 {showChat && <Chat roomId={roomId} />}
                 {showWhiteboard && (
-                    <div 
-                        className="whiteboard-widget" 
-                        style={{ position: 'absolute', left: 400, top: 100 }} // Initial position for whiteboard 
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, 'whiteboard')}
-                    >
-                        <WhiteboardWidget />
-                    </div>
+                        <WhiteboardWidget roomId = { roomId }/>
                 )}
                 <div className="upper-right-box">
                     <div className="box-title">My Room</div>

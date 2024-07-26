@@ -18,9 +18,7 @@
 }
 
 input {
-  padding: 10px;
   font-size: 16px;
-  margin-right: 10px;
 }
 
 button {
@@ -294,3 +292,4 @@ main {
   color: #000;
   margin-left: 20px;
 }
+

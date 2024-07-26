@@ -1,9 +1,11 @@
 import React from 'react';
+import Sidebar from '../components/Sidebar';
+
 
 const Notes = () => {
   return (
     <div>
-      <h1>Notes page</h1>
+       <Sidebar />
     </div>
   );
 }

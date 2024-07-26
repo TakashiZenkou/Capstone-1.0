@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaThLarge, FaChalkboard, FaBars } from "react-icons/fa";
 import { AiOutlinePicture } from "react-icons/ai";
 import { CgNotes, CgProfile } from "react-icons/cg";
@@ -7,19 +7,28 @@ import { LuListTodo } from "react-icons/lu";
 import { BsCameraVideoFill } from "react-icons/bs";
 import { NavLink } from 'react-router-dom';
 import ToDo from './ToDo'; 
-import Timer from './Timer'
+import Timer from './Timer';
+import WhiteboardWidget from './Whiteboard';
 import cafe from '../assets/cafe.mp4';
 import park from '../assets/park.mp4'; 
 import beach from '../assets/beach.mp4';
+import { useSocket } from '../SocketContext';
 
-const Sidebar = ({ children }) => {
+
+const Sidebar = ({ roomId, children }) => {
+    console.log(roomId);
+    const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
     const [isBackgroundPopupOpen, setIsBackgroundPopupOpen] = useState(false);
+    const [showWhiteboard, setShowWhiteboard] = useState(true);
     const [showTimer, setShowTimer] = useState(false);
     const [showTodo, setShowTodo] = useState(false);
     const [timerPosition, setTimerPosition] = useState({ x: 0, y: 0 });
     const [todoPosition, setTodoPosition] = useState({ x: 0, y: 0 });
     const [background, setBackground] = useState(null);
+    const [volume, setVolume] = useState(0.1);
+    const [isMuted, setIsMuted] = useState(false);
+    const videoRef = useRef(null);
 
     const toggle = () => setIsOpen(!isOpen);
 
@@ -31,6 +40,43 @@ const Sidebar = ({ children }) => {
     const handleTimerClick = (e) => {
         e.preventDefault();
         setShowTimer(prevShowTimer => !prevShowTimer);
+    };
+
+    const handleVolumeChange = (event) => {
+        const newVolume = parseFloat(event.target.value);
+        setVolume(newVolume);
+        if (videoRef.current) {
+            videoRef.current.volume = newVolume;
+        }
+    };
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.volume = volume;
+            videoRef.current.muted = isMuted;
+        }
+    }, [volume, isMuted]);
+
+
+
+    useEffect(() => {
+        socket.on('backgroundUpdate', (data) => {
+            setBackground(data.background);
+        });
+    
+        socket.on('widgetUpdate', (data) => {
+            // Update widget positions based on data.widget and data.position
+        });
+    
+        return () => {
+            socket.off('backgroundUpdate');
+            socket.off('widgetUpdate');
+        };
+    }, [socket]);
+
+
+    const toggleMute = () => {
+        setIsMuted(!isMuted);
     };
 
     const handleTodoClick = (e) => {
@@ -47,9 +93,9 @@ const Sidebar = ({ children }) => {
     };
 
     const handleBackgroundSelect = (bg) => {
-        console.log("Hi")
         setBackground(bg);
         setIsBackgroundPopupOpen(false);
+        socket.emit('backgroundUpdate', { roomId, background:bg});
     };
 
     const handleDragStart = (e, widget) => {
@@ -73,6 +119,8 @@ const Sidebar = ({ children }) => {
             setTodoPosition({ x, y });
         } else if (widget === 'timer') {
             setTimerPosition({ x, y });
+        } else if (widget === 'whiteboard') {
+            // Position logic for Whiteboard if needed
         }
 
         e.preventDefault();
@@ -110,7 +158,8 @@ const Sidebar = ({ children }) => {
         {
             path: "/whiteboard",
             name: "Whiteboard",
-            icon: <FaChalkboard />
+            icon: <FaChalkboard />,
+            onClick: () => setShowWhiteboard(prev => !prev)
         },
         {
             path: "/timer",
@@ -140,7 +189,7 @@ const Sidebar = ({ children }) => {
                             to={item.path} 
                             key={index} 
                             className="link" 
-                            activeclassName="active" 
+                            activeClassName="active" 
                             onClick={item.onClick}
                         >
                             <div className="icon">{item.icon}</div>
@@ -159,15 +208,19 @@ const Sidebar = ({ children }) => {
                             <button onClick={() => handleBackgroundSelect(cafe)}>Cafe</button>
                             <button onClick={() => handleBackgroundSelect(park)}>Park</button>
                             <button onClick={() => handleBackgroundSelect(beach)}>Beach</button>
+                            <button onClick={() => handleBackgroundSelect(beach)}>Apartment</button>
+                            <button onClick={() => handleBackgroundSelect(beach)}>City</button>
                         </div>
                     </div>
                 )}
                 {background && (
                     <div className="background-container">
                         <video
+                            ref={videoRef}
                             src={background}
                             autoPlay
                             loop
+                            preload="auto"
                             style={{
                                 position: 'absolute',
                                 top: 0,
@@ -176,9 +229,23 @@ const Sidebar = ({ children }) => {
                                 height: '100%',
                                 objectFit: 'cover',
                                 zIndex: 4,
-                                volume: 0.5,
                             }}
                         />
+                        <div style={{ position: 'absolute', bottom: 10, left: 10, zIndex: 5 }}>
+                            <input
+                                className='test'
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={handleVolumeChange}
+                                style={{ width: '150px' }}
+                            />
+                            <button onClick={toggleMute}>
+                                {isMuted ? 'Unmute' : 'Mute'}
+                            </button>
+                        </div>
                     </div>
                 )}
                 {showTimer && (
@@ -205,6 +272,16 @@ const Sidebar = ({ children }) => {
                         onDragStart={(e) => handleDragStart(e, 'todo')}
                     >
                         <ToDo />
+                    </div>
+                )}
+                {showWhiteboard && (
+                    <div 
+                        className="whiteboard-widget" 
+                        style={{ position: 'absolute', left: 400, top: 100 }} // Initial position for whiteboard 
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, 'whiteboard')}
+                    >
+                        <WhiteboardWidget />
                     </div>
                 )}
                 <div className="upper-right-box">

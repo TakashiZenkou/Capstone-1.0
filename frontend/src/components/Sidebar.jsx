@@ -13,10 +13,11 @@ import cafe from '../assets/cafe.mp4';
 import park from '../assets/park.mp4'; 
 import beach from '../assets/beach.mp4';
 import { useSocket } from '../SocketContext';
+import Chat from './Chat';
 
 
 const Sidebar = ({ roomId, children }) => {
-    console.log(roomId);
+    const [showChat, setShowChat] = useState(false);
     const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
     const [isBackgroundPopupOpen, setIsBackgroundPopupOpen] = useState(false);
@@ -31,6 +32,10 @@ const Sidebar = ({ roomId, children }) => {
     const videoRef = useRef(null);
 
     const toggle = () => setIsOpen(!isOpen);
+
+    const toggleChat = () => {
+        setShowChat(prevShowChat => !prevShowChat);
+    };
 
     const handleBackgroundClick = (e) => {
         e.preventDefault();
@@ -57,8 +62,6 @@ const Sidebar = ({ roomId, children }) => {
         }
     }, [volume, isMuted]);
 
-
-
     useEffect(() => {
         socket.on('backgroundUpdate', (data) => {
             setBackground(data.background);
@@ -73,7 +76,6 @@ const Sidebar = ({ roomId, children }) => {
             socket.off('widgetUpdate');
         };
     }, [socket]);
-
 
     const toggleMute = () => {
         setIsMuted(!isMuted);
@@ -140,9 +142,10 @@ const Sidebar = ({ roomId, children }) => {
             onClick: handleBackgroundClick
         },
         {
-            path: "/chatroom",
+            path: "#",  // No path for chat; handled with onClick
             name: "ChatRoom",
-            icon: <IoIosChatboxes />
+            icon: <IoIosChatboxes />,
+            onClick: toggleChat
         },
         {
             path: "/todo",
@@ -186,11 +189,12 @@ const Sidebar = ({ roomId, children }) => {
                 {
                     menuItem.map((item, index) => (
                         <NavLink 
-                            to={item.path} 
-                            key={index} 
-                            className="link" 
-                            activeClassName="active" 
+                            to={item.path}
+                            key={index}
+                            className="link"
+                            activeClassName="active"
                             onClick={item.onClick}
+                            style={{ cursor: item.onClick ? 'pointer' : 'default' }}
                         >
                             <div className="icon">{item.icon}</div>
                             <div style={{ display: isOpen ? "block" : "none" }} className="link_text">{item.name}</div>
@@ -274,6 +278,7 @@ const Sidebar = ({ roomId, children }) => {
                         <ToDo />
                     </div>
                 )}
+                {showChat && <Chat roomId={roomId} />}
                 {showWhiteboard && (
                     <div 
                         className="whiteboard-widget" 

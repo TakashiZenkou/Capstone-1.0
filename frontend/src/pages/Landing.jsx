@@ -44,23 +44,21 @@ const Landing = () => {
             navigate(`/dashboard/${roomId}`);
         });
 
+        socket.on('roomCreated', (roomId)=>{
+            console.log(roomId);
+            navigate(`/dashboard/${roomId}`);
+        })
+
         return () => {
             socket.off('error');
             socket.off('roomJoined');
+            socket.off('roomCreated');
         };
     }, [navigate]);
 
 
-
-    const handleCreateRoom = async () => {
-        try {
-            const response = await axios.post('http://localhost:8081/create-room');
-            const newRoomId = response.data.roomId;
-            setRoomId(newRoomId);
-            navigate(`/dashboard/${newRoomId}`);
-        } catch (error) {
-            console.error('Error:', error);
-        }
+    const handleCreateRoom = () => {
+        socket.emit('createRoom',roomId);
     };
 
     const handleJoinRoom = async () => {

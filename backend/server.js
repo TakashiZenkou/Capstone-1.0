@@ -43,6 +43,17 @@ const pool = new Pool({
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
+
+    socket.on('createRoom', () => {
+        const roomId = uuidv4(); // Generate a unique room ID
+        rooms.set(roomId, new Set()); // Initialize an empty set of users for the room
+        rooms.get(roomId).add(socket.id);
+        socket.join(roomId);
+        console.log(roomId);
+        console.log('Rooms:', rooms);
+        socket.emit('roomCreated', roomId);
+    });
+
     socket.on('joinRoom', (roomId) => {
         console.log(roomId);
         console.log(rooms);
@@ -55,6 +66,13 @@ io.on('connection', (socket) => {
             console.log("I got here")
             socket.emit('error', 'Room does not exist');
         }
+    });
+
+    socket.on('sendMessage', (data) => {
+        console.log(data);
+        const { roomId, message, username } = data;
+        console.log(roomId);
+        io.to(roomId).emit('chatMessage', { username, text: message });
     });
 
     socket.on('backgroundUpdate', (data) => {
@@ -91,12 +109,7 @@ function isAuthenticated(req, res, next) {
     }
 }
 
-app.post('/create-room', (req, res) => {
-    const roomId = uuidv4(); // Generate a unique room ID
-    rooms.set(roomId, new Set()); // Initialize an empty set of users for the room
 
-    res.json({ roomId });
-});
 
 app.post('/signup', async (req, res) => {
     const sql = "INSERT INTO users (username, password, lastname, firstname, gender, education, academic) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";

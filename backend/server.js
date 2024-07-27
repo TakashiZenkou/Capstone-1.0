@@ -94,24 +94,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('drawing', (data) => {
-        console.log(data);
         const { roomId, type, x, y, color, brushSize } = data;
         socket.to(roomId).emit('drawing', { type, x, y, color, brushSize });
     });
 
     socket.on('clearCanvas', (roomId) => {
         socket.to(roomId).emit('clearCanvas');
-    });
-
-    socket.on('undo', (data) => {
-        const { roomId } = data;
-        socket.to(roomId).emit('undo');
-    });
-
-
-    socket.on('redo', (data) => {
-        const { roomId } = data;
-        socket.to(roomId).emit('redo');
     });
 
 

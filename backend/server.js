@@ -43,6 +43,7 @@ const pool = new Pool({
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
+    console.log(socket.on);
 
     socket.on('createRoom', () => {
         const roomId = uuidv4(); 
@@ -113,6 +114,14 @@ io.on('connection', (socket) => {
                 }
             }
         });
+    });
+
+    socket.on('signal', (data) => {
+        io.to(data.roomId).emit('signal', { id: socket.id, ...data });
+    });
+
+    socket.on('ice-candidate', (data) => {
+        io.to(data.roomId).emit('ice-candidate', { id: socket.id, candidate: data.candidate });
     });
 });
 

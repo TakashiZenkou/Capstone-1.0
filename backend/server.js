@@ -94,6 +94,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('drawing', (data) => {
+        console.log(data);
         const { roomId, type, x, y, color, brushSize } = data;
         socket.to(roomId).emit('drawing', { type, x, y, color, brushSize });
     });
@@ -174,17 +175,16 @@ app.put('/update-user', async (req, res) => {
     const { firstname, lastname, username, password, education, academic, gender } = req.body;
 
     try {
-        // Get current user details from the database
+
         const result = await pool.query('SELECT * FROM Users WHERE id = $1', [userId]);
         const currentUser = result.rows[0];
 
-        // Check if the provided password is different from the current one
         let hashedPassword = currentUser.password;
         if (password && password !== currentUser.password) {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
-        // Construct the update query dynamically based on the provided fields
+
         const updates = [];
         const values = [];
         let index = 1;
@@ -222,7 +222,6 @@ app.put('/update-user', async (req, res) => {
             return res.json({ message: 'No fields to update' });
         }
 
-        // Add userId to the values array for the WHERE clause
         values.push(userId);
 
         const query = `UPDATE Users SET ${updates.join(', ')} WHERE id = $${index}`;

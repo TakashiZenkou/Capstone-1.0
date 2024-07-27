@@ -7,7 +7,6 @@ const WhiteboardWidget = ({ roomId }) => {
     const [drawing, setDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
-    const [isEraser, setIsEraser] = useState(false); 
 
     const startDrawing = (e) => {
         const canvas = canvasRef.current;
@@ -16,7 +15,7 @@ const WhiteboardWidget = ({ roomId }) => {
         context.beginPath();
         setDrawing(true);
         context.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        socket.emit('drawing', { roomId, type: 'start', x: e.clientX - rect.left, y: e.clientY - rect.top, color, brushSize, isEraser });
+        socket.emit('drawing', { roomId, type: 'start', x: e.clientX - rect.left, y: e.clientY - rect.top, color, brushSize });
     };
 
     const draw = (e) => {
@@ -26,15 +25,10 @@ const WhiteboardWidget = ({ roomId }) => {
         const rect = canvas.getBoundingClientRect();
         context.lineWidth = brushSize;
         context.lineCap = 'round';
-        if (isEraser) {
-            context.globalCompositeOperation = 'destination-out';
-        } else {
-            context.globalCompositeOperation = 'source-over';
-            context.strokeStyle = color;
-        }
+        context.strokeStyle = color;
         context.lineTo(e.clientX - rect.left, e.clientY - rect.top);
         context.stroke();
-        socket.emit('drawing', { roomId, type: 'draw', x: e.clientX - rect.left, y: e.clientY - rect.top, color, brushSize, isEraser });
+        socket.emit('drawing', { roomId, type: 'draw', x: e.clientX - rect.left, y: e.clientY - rect.top, color, brushSize });
     };
 
     const stopDrawing = () => {
@@ -52,15 +46,10 @@ const WhiteboardWidget = ({ roomId }) => {
 
     const changeColor = (newColor) => {
         setColor(newColor);
-        setIsEraser(false); 
     };
 
     const changeBrushSize = (size) => {
         setBrushSize(size);
-    };
-
-    const toggleEraser = () => {
-        setIsEraser(prev => !prev); 
     };
 
     useEffect(() => {
@@ -76,13 +65,11 @@ const WhiteboardWidget = ({ roomId }) => {
                 context.moveTo(data.x, data.y);
                 context.strokeStyle = data.color;
                 context.lineWidth = data.brushSize;
-                context.globalCompositeOperation = data.isEraser ? 'destination-out' : 'source-over';
             } else if (data.type === 'draw') {
                 context.lineTo(data.x, data.y);
                 context.stroke();
             } else if (data.type === 'stop') {
                 context.closePath();
-                context.globalCompositeOperation = 'source-over';
             }
         };
 
@@ -128,7 +115,6 @@ const WhiteboardWidget = ({ roomId }) => {
                 <button onClick={() => changeColor('#00ff00')} style={{ backgroundColor: '#00ff00', color: '#ffffff' }}>Green</button>
                 <button onClick={() => changeColor('#0000ff')} style={{ backgroundColor: '#0000ff', color: '#ffffff' }}>Blue</button>
                 <button onClick={() => changeColor('#ffff00')} style={{ backgroundColor: '#ffff00', color: '#000000' }}>Yellow</button>
-                <button onClick={toggleEraser} style={{ backgroundColor: isEraser ? '#aaa' : '#ccc' }}>Eraser</button>
                 <button onClick={clearCanvas}>Clear</button>
                 <select value={brushSize} onChange={(e) => changeBrushSize(Number(e.target.value))} style={{ marginLeft: '10px' }}>
                     <option value="1">Brush Size: 1</option>

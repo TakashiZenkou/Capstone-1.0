@@ -14,7 +14,7 @@ import park from '../assets/park.mp4';
 import beach from '../assets/beach.mp4';
 import { useSocket } from '../SocketContext';
 import Chat from './Chat';
-import WebRTCComponent from './WebRTC';
+
 
 const Sidebar = ({ roomId, children }) => {
     const [showChat, setShowChat] = useState(false);
@@ -30,13 +30,6 @@ const Sidebar = ({ roomId, children }) => {
     const [volume, setVolume] = useState(0.1);
     const [isMuted, setIsMuted] = useState(false);
     const videoRef = useRef(null);
-    const webRTCRef = useRef();
-
-    // Dummy user data
-    const user = {
-        firstName: "John",
-        lastName: "Doe"
-    };
 
     const toggle = () => setIsOpen(!isOpen);
 
@@ -182,13 +175,7 @@ const Sidebar = ({ roomId, children }) => {
         }
     ];
 
-    // Extract initials from the user's name
-    const getInitials = (name) => {
-        const names = name.split(' ');
-        return names.length > 1 
-            ? names[0][0] + names[1][0] 
-            : names[0][0];
-    };
+<<<<<<< HEAD
 
     const handleCallClick = () => {
         if (webRTCRef.current) {
@@ -198,11 +185,11 @@ const Sidebar = ({ roomId, children }) => {
     };
 
     const handleInviteClick = () => {
-        // Function to handle invite
         console.log('Invite button clicked');
-        // Add code for inviting users
     };
 
+=======
+>>>>>>> parent of 43de4b5 (Started Adding Voice and Video Chat)
     return (
         <div className="containerr" onDragOver={handleDragOver} onDrop={handleDrop}>
             <div style={{ width: isOpen ? "200px" : "50px" }} className="sidebar">
@@ -311,9 +298,8 @@ const Sidebar = ({ roomId, children }) => {
                 <div className="upper-right-box">
                     <div className="box-title">My Room</div>
                     <div className="box-button-container">
-                        <button className="box-button" onClick={handleInviteClick}>Invite</button>
-                        <button className="box-button" onClick={handleCallClick}>Call</button>
-                        <WebRTCComponent ref={webRTCRef} roomId="roomId" />
+                        <button className="box-button">INVITE</button>
+                        <BsCameraVideoFill className="box-icon" />
                     </div>
                 </div>
             </main>

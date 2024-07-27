@@ -20,24 +20,7 @@
 input {
   font-size: 16px;
 }
-.box-button-container {
-  display: flex;
-  gap: 10px;
-}
 
-.box-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.box-button:hover {
-  background-color: #0056b3;
-}
 button {
   padding: 10px 20px;
   font-size: 16px;

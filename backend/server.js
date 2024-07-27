@@ -43,7 +43,6 @@ const pool = new Pool({
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
-    console.log(socket.on);
 
     socket.on('createRoom', () => {
         const roomId = uuidv4(); 
@@ -95,8 +94,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('drawing', (data) => {
-        const { roomId, type, x, y, color, brushSize, isEraser } = data;
-        socket.to(roomId).emit('drawing', { type, x, y, color, brushSize, isEraser });
+        const { roomId, type, x, y, color, brushSize } = data;
+        socket.to(roomId).emit('drawing', { type, x, y, color, brushSize });
     });
 
     socket.on('clearCanvas', (roomId) => {
@@ -114,14 +113,6 @@ io.on('connection', (socket) => {
                 }
             }
         });
-    });
-
-    socket.on('signal', (data) => {
-        io.to(data.roomId).emit('signal', { id: socket.id, ...data });
-    });
-
-    socket.on('ice-candidate', (data) => {
-        io.to(data.roomId).emit('ice-candidate', { id: socket.id, candidate: data.candidate });
     });
 });
 

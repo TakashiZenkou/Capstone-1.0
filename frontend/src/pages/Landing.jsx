@@ -11,18 +11,15 @@ const Landing = () => {
     const socket = useSocket();
     const [roomId, setRoomId] = useState('');
     const [error, setError] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 
     useEffect(() => {
-        // Fetch the user details from the server to populate the form
-        axios.get('http://localhost:8081/user-details') // Adjust the endpoint as needed
+        axios.get('http://localhost:8081/user-details') 
             .then(response => {
-
+                
             })
             .catch(error => {
                 if (error.response && error.response.status === 401) {
-                    // Redirect to login page with a message
                     navigate('/login', { state: { message: "Please login to access this page" } });
                 } else {
                     console.error('Error fetching user details:', error);
@@ -32,20 +29,18 @@ const Landing = () => {
 
 
     useEffect(() => {
+        if (!socket) return;
+        
         socket.on('error', (errorMessage) => {
-            console.log("Hello");
             setError(errorMessage);
             console.log(error);
         });
 
         socket.on('roomJoined', (roomId) => {
-            console.log("It hit the roomJoined");
-            // Redirect to the room page when the room is joined
             navigate(`/dashboard/${roomId}`);
         });
 
         socket.on('roomCreated', (roomId)=>{
-            console.log(roomId);
             navigate(`/dashboard/${roomId}`);
         })
 
@@ -63,7 +58,6 @@ const Landing = () => {
 
     const handleJoinRoom = async () => {
         if (roomId) {
-            // Emit event to join the room
             socket.emit('joinRoom', roomId);
         } else {
             alert('Please enter a room ID');

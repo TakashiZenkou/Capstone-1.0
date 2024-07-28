@@ -18,6 +18,8 @@ const io = socketIo(server, {
     }
 });
 
+// Setup
+
 app.use(cors({
     origin: 'http://localhost:3000', 
     credentials: true 
@@ -30,7 +32,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false }, 
-    maxAge: 1000 * 60 * 60 * 24
 }));
 
 const pool = new Pool({
@@ -41,49 +42,44 @@ const pool = new Pool({
     port: 5432 
 });
 
+
+// Sockets
+
+
+
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     socket.on('createRoom', () => {
-        const roomId = uuidv4(); 
+        const roomId = uuidv4();
+        socket.join(roomId); 
         rooms.set(roomId, new Set()); 
         rooms.get(roomId).add(socket.id);
-        socket.join(roomId);
-        console.log(roomId);
-        console.log('Rooms:', rooms);
         socket.emit('roomCreated', roomId);
     });
 
     socket.on('joinRoom', (roomId) => {
-        console.log(roomId);
-        console.log(rooms);
         if (rooms.has(roomId)) {
             socket.join(roomId);
             rooms.get(roomId).add(socket.id);
             io.to(roomId).emit('roomJoined', roomId);
             console.log(rooms);
         } else {
-            console.log("I got here")
             socket.emit('error', 'Room does not exist');
         }
     });
 
     socket.on('sendMessage', (data) => {
-        console.log(data);
         const { roomId, message, username } = data;
-        console.log(roomId);
         io.to(roomId).emit('chatMessage', { username, text: message });
     });
 
     socket.on('backgroundUpdate', (data) => {
         const { roomId, background } = data;
         io.to(roomId).emit('backgroundUpdate', { background });
-        console.log(data);
     });
 
     socket.on('updateTasks', ({ roomId, tasks }) => {
-        console.log(tasks);
-        console.log(roomId);
         rooms[roomId] = tasks;
         socket.to(roomId).emit('updateTasks', tasks);
     });
@@ -94,12 +90,27 @@ io.on('connection', (socket) => {
     });
 
     socket.on('drawing', (data) => {
-        const { roomId, type, x, y, color, brushSize } = data;
-        socket.to(roomId).emit('drawing', { type, x, y, color, brushSize });
+        const { roomId, type, x, y, color, brushSize, isEraser } = data;
+        socket.to(roomId).emit('drawing', { type, x, y, color, brushSize, isEraser });
     });
 
     socket.on('clearCanvas', (roomId) => {
         socket.to(roomId).emit('clearCanvas');
+    });
+
+    socket.on('offer', (data) => {
+        console.log(data.room);
+        io.to(data.room).emit('offer', data.offer);
+    });
+
+    socket.on('answer', (data) => {
+        console.log(data.room);
+        io.to(data.room).emit('answer', data.answer);
+    });
+
+    socket.on('ice-candidate', (data) => {
+        console.log(data.room);
+        io.to(data.room).emit('ice-candidate', data.candidate);
     });
 
 
@@ -116,6 +127,13 @@ io.on('connection', (socket) => {
     });
 });
 
+
+
+
+
+
+// Routes
+
 function isAuthenticated(req, res, next) {
     if (req.session.user) {
         next();
@@ -123,8 +141,6 @@ function isAuthenticated(req, res, next) {
         res.status(401).send('You are not authenticated.');
     }
 }
-
-
 
 app.post('/signup', async (req, res) => {
     const sql = "INSERT INTO users (username, password, lastname, firstname, gender, education, academic) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
@@ -138,7 +154,6 @@ app.post('/signup', async (req, res) => {
 
         res.json(result.rows[0]);
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Error while registering user" });
     }
 });
@@ -153,12 +168,11 @@ app.get('/user-details', isAuthenticated, async (req, res) => {
             res.status(404).json({ error: 'User not found' });
         }
     } catch (err) {
-        console.error('Error fetching user details:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-app.put('/update-user', async (req, res) => {
+app.put('/update-user', isAuthenticated, async (req, res) => {
     const userId = req.session.user;
     const { firstname, lastname, username, password, education, academic, gender } = req.body;
 

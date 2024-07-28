@@ -91,10 +91,10 @@ const Settings = () => {
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
-            axios.put('http://localhost:8081/update-user', changedData, { withCredentials: true })
+            axios.put('http://localhost:8081/update-user', changedData)
                 .then(response => {
                     setSuccessMessage('Your details have been updated successfully.');
-                    setInitialData(formData); // Update initial data to the new data
+                    setInitialData(formData); 
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 401) {

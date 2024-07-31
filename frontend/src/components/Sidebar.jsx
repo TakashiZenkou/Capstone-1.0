@@ -438,12 +438,6 @@ const Sidebar = ({ roomId, children }) => {
                 {whiteboardSize && (
                     <WhiteboardWidget roomId={roomId} size={whiteboardSize} onClose={handleWhiteboardClose} />
                 )}
-                <div>
-                    <button>Start Sharing</button>
-                    <button>Stop Sharing</button>
-                    <video autoPlay playsInline></video>
-                    <video autoPlay playsInline></video>
-                </div>
                 <div className="upper-right-box">
                     <div className="box-title">My Room</div>
                     <div className="box-button-container">

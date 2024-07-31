@@ -21,7 +21,7 @@ const io = socketIo(server, {
 // Setup CORS
 const corsOptions = {
     origin: 'http://localhost:3000',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT'],
     credentials: true
 };
 

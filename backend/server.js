@@ -98,6 +98,7 @@ io.on('connection', (socket) => {
     socket.on('clearCanvas', (roomId) => {
         socket.to(roomId).emit('clearCanvas');
     });
+    
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);

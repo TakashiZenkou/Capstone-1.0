@@ -22,7 +22,7 @@ const Sidebar = ({ roomId, children }) => {
     const navigate = useNavigate();
     const [showChat, setShowChat] = useState(false);
     const socket = useSocket();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const [isBackgroundPopupOpen, setIsBackgroundPopupOpen] = useState(false);
     const [showWhiteboard, setShowWhiteboard] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
@@ -37,6 +37,7 @@ const Sidebar = ({ roomId, children }) => {
     const [showMembers, setShowMembers] = useState(false);
     const [usernames, setUsernames] = useState([]);
     const [username, setUsername] = useState('');
+
 
     // Functions
 
@@ -138,7 +139,7 @@ const Sidebar = ({ roomId, children }) => {
     const handleWhiteboardClick = (e) => {
         e.preventDefault();
         setShowWhiteboard(true);
-        setWhiteboardSize(null); // Show size selection menu when whiteboard icon is clicked
+        setWhiteboardSize(null); 
     };
 
     const toggleMembersList = () => {
@@ -148,6 +149,7 @@ const Sidebar = ({ roomId, children }) => {
     const handleLogout = () => {
         axios.get('http://localhost:8081/logout')
             .then(() => {
+                socket.disconnect();
                 navigate('/login');
             })
             .catch((err) => {
@@ -164,7 +166,7 @@ const Sidebar = ({ roomId, children }) => {
         },
         {
             path: "/chatz",
-            name: "ChatRoom",
+            name: "Chat",
             icon: <IoIosChatboxes />,
             onClick: toggleChat
         },

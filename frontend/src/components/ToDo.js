@@ -1,21 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useSocket } from '../SocketContext';
+import axios from 'axios';
 import './ToDo.css';
 
-const ToDo = ({ roomId }) => {
-    console.log(roomId);
+axios.defaults.withCredentials = true;
+
+const ToDo = ({ roomId, onClose }) => {
     const socket = useSocket();
     const [tasks, setTasks] = useState([]);
     const [taskInput, setTaskInput] = useState('');
     const [priority, setPriority] = useState('Low');
     const [showCompleted, setShowCompleted] = useState(false);
+    const [username, setUsername] = useState(''); // Initialize username state
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                const response = await axios.get('http://localhost:8081/user-details', {
+                    withCredentials: true // Include cookies in the request
+                });
+
+                setUsername(response.data.username); // Set the username from userDetails
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+            }
+        };
+
+        fetchUserDetails();
+    }, []);
 
     useEffect(() => {
         if (socket) {
             socket.on('updateTasks', (newTasks) => {
-                console.log(newTasks);
                 setTasks(newTasks);
             });
 
@@ -39,7 +57,8 @@ const ToDo = ({ roomId }) => {
                 id: Date.now(),
                 text: taskInput,
                 priority,
-                completed: false
+                completed: false,
+                user: username // Include the username
             };
             const updatedTasks = [...tasks, newTask];
             setTasks(updatedTasks);
@@ -85,6 +104,9 @@ const ToDo = ({ roomId }) => {
                 <button onClick={handleViewToggle}>
                     {showCompleted ? 'Show Pending' : 'Show Completed'}
                 </button>
+                <button className="close-todo" onClick={onClose}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
             </div>
             {!showCompleted && (
                 <div className="todo-input">
@@ -109,15 +131,19 @@ const ToDo = ({ roomId }) => {
             <ul className="todo-list">
                 {filteredTasks.map((task) => (
                     <li key={task.id} className={`todo-item ${task.completed ? 'completed' : ''}`}>
-                        <div className="form-check">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                checked={task.completed}
-                                onChange={() => toggleCompletion(task.id)}
-                            />
+                        <div className="task-details">
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    checked={task.completed}
+                                    onChange={() => toggleCompletion(task.id)}
+                                />
+                            </div>
+                            <span className="task-text">{task.text}</span>
+                            <span className="task-user">{task.user}</span>
+                            <span className={`task-priority ${task.priority.toLowerCase()}`}>{task.priority}</span>
                         </div>
-                        <span>{task.text} {task.priority}</span>
                         {!showCompleted && (
                             <button className="remove-task" onClick={() => handleRemoveTask(task.id)}>
                                 <FontAwesomeIcon icon={faTrash} />

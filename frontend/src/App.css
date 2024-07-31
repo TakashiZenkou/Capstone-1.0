@@ -177,7 +177,7 @@ main {
 /* Upper Right Box Styles */
 .upper-right-box {
   position: absolute;
-  top: 160px;
+  top: 120px;
   right: 20px;
   background: #549AAB;
   border: 1px solid #ccc;
@@ -186,7 +186,7 @@ main {
   border-radius: 4px;
   z-index: 1000;
   width: 250px; 
-}
+} 
 
 .box-title {
   font-size: 18px;
@@ -247,3 +247,76 @@ main {
   right: 10px;
 }
 
+.members-on-call {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.members-on-call h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+}
+
+.members-on-call ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.members-on-call li {
+  margin: 5px 0;
+}
+
+.user-initials-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4caf50;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+
+.size-menu {
+  position: absolute; /* Ensure the menu is positioned */
+  top: 10px; /* Adjust as needed */
+  left: 10px; /* Adjust as needed */
+  z-index: 10; /* Higher than the background video */
+  padding: 10px; /* Optional: Add some padding */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add some shadow */
+}
+
+
+.members-list-container {
+  position: absolute;
+  top: 10px; /* Adjust this value to move it further down */
+  left:500px;
+  z-index: 10;
+  background: #549AAB;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.members-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 10px;
+}
+
+.members-list li.highlighted {
+  font-weight: bold;
+  color: #ff5722; /* Example color for highlighting */
+}

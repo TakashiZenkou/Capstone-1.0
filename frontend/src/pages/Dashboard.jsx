@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 
 const Dashboard = () => {
   const { roomId } = useParams();
-  console.log("This is me in dashboard")
   return (
     <div>
        <Sidebar roomId={roomId} />

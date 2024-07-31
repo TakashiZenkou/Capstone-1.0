@@ -1,13 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useSocket } from '../SocketContext';
+import { FaTimes } from "react-icons/fa";
 
-const WhiteboardWidget = ({ roomId }) => {
+const WhiteboardWidget = ({ roomId, size, onClose }) => {
     const canvasRef = useRef(null);
     const socket = useSocket();
     const [drawing, setDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
-    const [isEraser, setIsEraser] = useState(false); 
+    const [isEraser, setIsEraser] = useState(false);
+    const sizes = {
+        small: { width: 300, height: 300 },
+        medium: { width: 600, height: 450 },
+        large: { width: 650, height: 500 },
+    };
 
     const startDrawing = (e) => {
         const canvas = canvasRef.current;
@@ -52,7 +58,7 @@ const WhiteboardWidget = ({ roomId }) => {
 
     const changeColor = (newColor) => {
         setColor(newColor);
-        setIsEraser(false); 
+        setIsEraser(false);
     };
 
     const changeBrushSize = (size) => {
@@ -60,13 +66,13 @@ const WhiteboardWidget = ({ roomId }) => {
     };
 
     const toggleEraser = () => {
-        setIsEraser(prev => !prev); 
+        setIsEraser(prev => !prev);
     };
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        canvas.width = 500;
-        canvas.height = 500;
+        canvas.width = sizes[size].width;
+        canvas.height = sizes[size].height;
 
         const handleDrawing = (data) => {
             const canvas = canvasRef.current;
@@ -99,7 +105,7 @@ const WhiteboardWidget = ({ roomId }) => {
             socket.off('drawing', handleDrawing);
             socket.off('clearCanvas', handleClearCanvas);
         };
-    }, [socket]);
+    }, [socket, size]);
 
     return (
         <div
@@ -112,6 +118,9 @@ const WhiteboardWidget = ({ roomId }) => {
                 position: 'relative',
             }}
         >
+            <button onClick={onClose} style={{ position: 'absolute', top: 5, right: 5 }}>
+                <FaTimes />
+            </button>
             <div>
                 <canvas
                     ref={canvasRef}

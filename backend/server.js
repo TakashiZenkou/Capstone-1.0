@@ -18,15 +18,19 @@ const io = socketIo(server, {
     }
 });
 
-// Setup
+// Setup CORS
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true
+};
 
-app.use(cors({
-    origin: 'http://localhost:3000', 
-    credentials: true 
-}));
 
+app.use(cors(corsOptions));
 app.use(express.json());
 
+
+// Setup session
 app.use(session({
     secret: 'your_secure_key',
     resave: false,
@@ -42,32 +46,29 @@ const pool = new Pool({
     port: 5432 
 });
 
-
-// Sockets
-
-
-
+// Socket.IO handling
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
     socket.on('createRoom', () => {
         const roomId = uuidv4();
         socket.join(roomId); 
-        rooms.set(roomId, new Set()); 
-        rooms.get(roomId).add(socket.id);
+        rooms.set(roomId, new Map()); 
         socket.emit('roomCreated', roomId);
     });
 
-    socket.on('joinRoom', (roomId) => {
+    socket.on('joinRoom', ({ roomId, username }) => {
         if (rooms.has(roomId)) {
             socket.join(roomId);
-            rooms.get(roomId).add(socket.id);
-            io.to(roomId).emit('roomJoined', roomId);
-            console.log(rooms);
+            rooms.get(roomId).set(socket.id, username);
+            console.log(Array.from(rooms.get(roomId).values()));
+            io.to(roomId).emit('updateUsernames', Array.from(rooms.get(roomId).values()));
+            socket.emit('roomJoined', roomId);
         } else {
-            socket.emit('error', 'Room does not exist');
+            socket.emit('error', `Room does not exist: ${roomId}`);
         }
     });
+
 
     socket.on('sendMessage', (data) => {
         const { roomId, message, username } = data;
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('updateTasks', ({ roomId, tasks }) => {
-        rooms[roomId] = tasks;
+        rooms.get(roomId).tasks = tasks;
         socket.to(roomId).emit('updateTasks', tasks);
     });
 
@@ -98,27 +99,12 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('clearCanvas');
     });
 
-    socket.on('offer', (data) => {
-        console.log(data.room);
-        io.to(data.room).emit('offer', data.offer);
-    });
-
-    socket.on('answer', (data) => {
-        console.log(data.room);
-        io.to(data.room).emit('answer', data.answer);
-    });
-
-    socket.on('ice-candidate', (data) => {
-        console.log(data.room);
-        io.to(data.room).emit('ice-candidate', data.candidate);
-    });
-
-
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         rooms.forEach((users, roomId) => {
             if (users.has(socket.id)) {
                 users.delete(socket.id);
+                io.to(roomId).emit('updateUsernames', Array.from(users.values()));
                 if (users.size === 0) {
                     rooms.delete(roomId); 
                 }
@@ -127,10 +113,7 @@ io.on('connection', (socket) => {
     });
 });
 
-
-
-
-
+;
 
 // Routes
 
@@ -148,13 +131,38 @@ app.post('/signup', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const values = [username, hashedPassword, lastname, firstname, gender, education, academic];
         const result = await pool.query(sql, values);
-
         res.json(result.rows[0]);
     } catch (err) {
         res.status(500).json({ error: "Error while registering user" });
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const sql = "SELECT * FROM Users WHERE Username = $1";
+    const values = [req.body.username];
+
+    try {
+        const result = await pool.query(sql, values);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            const isMatch = await bcrypt.compare(req.body.password, user.password);
+            if (isMatch) {
+                req.session.user = user.id;
+                req.session.authorized = true;
+                req.session.save(() => {
+                    res.json("Success");
+                });
+            } else {
+                res.status(401).json("Failed");
+            }
+        } else {
+            res.status(401).json("Failed");
+        }
+    } catch (err) {
+        console.error("Database error:", err);
+        res.status(500).json("Error");
     }
 });
 
@@ -177,7 +185,6 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
     const { firstname, lastname, username, password, education, academic, gender } = req.body;
 
     try {
-
         const result = await pool.query('SELECT * FROM Users WHERE id = $1', [userId]);
         const currentUser = result.rows[0];
 
@@ -185,7 +192,6 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
         if (password && password !== currentUser.password) {
             hashedPassword = await bcrypt.hash(password, 10);
         }
-
 
         const updates = [];
         const values = [];
@@ -225,7 +231,6 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
         }
 
         values.push(userId);
-
         const query = `UPDATE Users SET ${updates.join(', ')} WHERE id = $${index}`;
         await pool.query(query, values);
 
@@ -233,34 +238,6 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
     } catch (err) {
         console.error('Error updating user details:', err);
         res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-app.post('/login', async (req, res) => {
-    const sql = "SELECT * FROM Users WHERE Username = $1";
-    const values = [req.body.username];
-
-    try {
-        const result = await pool.query(sql, values);
-        if (result.rows.length > 0) {
-            const user = result.rows[0];
-            const isMatch = await bcrypt.compare(req.body.password, user.password);
-            if (isMatch) {
-                req.session.user = user.id;
-                req.session.authorized = true;
-                req.session.save(() => {
-                    console.log("Success");
-                    res.json("Success");
-                });
-            } else {
-                res.status(401).json("Failed");
-            }
-        } else {
-            res.status(401).json("Failed");
-        }
-    } catch (err) {
-        console.error("Database error:", err);
-        res.status(500).json("Error");
     }
 });
 
@@ -274,6 +251,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
-server.listen(8081, () => {
-    console.log('Server is listening on port 8081');
+const PORT = 8081;
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
 });

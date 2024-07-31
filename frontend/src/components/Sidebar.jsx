@@ -5,17 +5,20 @@ import { CgNotes, CgProfile } from "react-icons/cg";
 import { IoIosChatboxes, IoIosAlarm } from "react-icons/io";
 import { LuListTodo } from "react-icons/lu";
 import { NavLink } from 'react-router-dom';
-import ToDo from './ToDo'; 
+import ToDo from './ToDo';
 import Timer from './Timer';
 import WhiteboardWidget from './Whiteboard';
 import cafe from '../assets/cafe.mp4';
-import park from '../assets/park.mp4'; 
+import park from '../assets/park.mp4';
 import beach from '../assets/beach.mp4';
 import { useSocket } from '../SocketContext';
 import Chat from './Chat';
+import axios from 'axios';
 
+axios.defaults.withCredentials = true;
 
 const Sidebar = ({ roomId, children }) => {
+
     const [showChat, setShowChat] = useState(false);
     const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
@@ -26,22 +29,20 @@ const Sidebar = ({ roomId, children }) => {
     const [timerPosition, setTimerPosition] = useState({ x: 0, y: 0 });
     const [todoPosition, setTodoPosition] = useState({ x: 0, y: 0 });
     const [background, setBackground] = useState(null);
-    const [volume, setVolume] = useState(0.1);
+    const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(false);
     const videoRef = useRef(null);
-    const [isSharing, setIsSharing] = useState(false);
-    const peerConnRef = useRef(null);
-    const screenRef = useRef(null);
+    const [whiteboardSize, setWhiteboardSize] = useState(null); 
+    const [showMembers, setShowMembers] = useState(false);
+    const [usernames, setUsernames] = useState([]);
+    const [username, setUsername] = useState('');
 
-
-    const user = {
-        firstName: "John",
-        lastName: "Doe"
-    };
+    // Functions
 
     const toggle = () => setIsOpen(!isOpen);
 
-    const toggleChat = () => {
+    const toggleChat = (e) => {
+        e.preventDefault();
         setShowChat(prevShowChat => !prevShowChat);
     };
 
@@ -63,87 +64,20 @@ const Sidebar = ({ roomId, children }) => {
         }
     };
 
-    useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.volume = volume;
-            videoRef.current.muted = isMuted;
-        }
-    }, [volume, isMuted]);
-
-    useEffect(() => {
-
-        const handleOffer = async (offer) => {
-            try {
-                console.log('Received offer:', offer);
-                const peerConnection = new RTCPeerConnection();
-                peerConnRef.current = peerConnection; // Store peerConnection in ref
-                
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                console.log('Sending answer:', answer);
-                socket.emit('answer', { room: roomId, answer });
-                
-                peerConnection.ontrack = (event) => {
-                    console.log('Track event:', event);
-                    if (screenRef.current) {
-                        screenRef.current.srcObject = event.streams[0];
-                        console.log('Stream received and set to screenRef:', event.streams[0]);
-                    }
-                };
-                
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        console.log('Sending ICE candidate:', event.candidate);
-                        socket.emit('ice-candidate', { room: roomId, candidate: event.candidate });
-                    }
-                };
-            } catch (error) {
-                console.error('Error handling offer:', error);
-            }
-        };
-    
-        const handleIceCandidate = (candidate) => {
-            try {
-                const peerConnection = peerConnRef.current;
-                if (peerConnection) {
-                    console.log('Adding ICE candidate:', candidate);
-                    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                } else {
-                    console.error('Peer connection is not available');
-                }
-            } catch (error) {
-                console.error('Error adding ICE candidate:', error);
-            }
-        };
-
-        if (!socket) return;
-        socket.on('backgroundUpdate', (data) => {
-            setBackground(data.background);
-        });
-    
-        socket.on('widgetUpdate', (data) => {
-        });
-        socket.on('offer', handleOffer);
-        socket.on('ice-candidate', handleIceCandidate);
-
-        return () => {
-            socket.off('backgroundUpdate');
-            socket.off('widgetUpdate');
-            socket.off('offer');
-            socket.off('ice-candidate');
-
-        };
-    }, [socket, roomId]);
-
-
     const toggleMute = () => {
         setIsMuted(!isMuted);
+        if (videoRef.current) {
+            videoRef.current.muted = !isMuted;
+        }
     };
 
     const handleTodoClick = (e) => {
         e.preventDefault();
         setShowTodo(prevShowTodo => !prevShowTodo);
+    };
+
+    const handleWhiteboardClose = () => {
+        setWhiteboardSize(null); 
     };
 
     const handleTodoClose = () => {
@@ -157,13 +91,13 @@ const Sidebar = ({ roomId, children }) => {
     const handleBackgroundSelect = (bg) => {
         setBackground(bg);
         setIsBackgroundPopupOpen(false);
-        socket.emit('backgroundUpdate', { roomId, background:bg});
+        socket.emit('backgroundUpdate', { roomId, background: bg });
     };
 
     const handleDragStart = (e, widget) => {
         const style = window.getComputedStyle(e.target, null);
-        e.dataTransfer.setData("text/plain", 
-            (parseInt(style.getPropertyValue("left"), 10) - e.clientX) + ',' + 
+        e.dataTransfer.setData("text/plain",
+            (parseInt(style.getPropertyValue("left"), 10) - e.clientX) + ',' +
             (parseInt(style.getPropertyValue("top"), 10) - e.clientY) + ',' + widget);
     };
 
@@ -181,11 +115,30 @@ const Sidebar = ({ roomId, children }) => {
             setTodoPosition({ x, y });
         } else if (widget === 'timer') {
             setTimerPosition({ x, y });
-        } else if (widget === 'whiteboard') {
         }
 
         e.preventDefault();
         return false;
+    };
+
+    const handleInviteClick = () => {
+        navigator.clipboard.writeText(roomId)
+            .then(() => {
+                alert('Text copied to clipboard');
+            })
+            .catch(err => {
+                console.error('Failed to copy text:', err);
+            });
+    };
+
+    const handleWhiteboardClick = (e) => {
+        e.preventDefault();
+        setShowWhiteboard(true);
+        setWhiteboardSize(null); // Show size selection menu when whiteboard icon is clicked
+    };
+
+    const toggleMembersList = () => {
+        setShowMembers(prevShowMembers => !prevShowMembers);
     };
 
     const menuItem = [
@@ -201,7 +154,7 @@ const Sidebar = ({ roomId, children }) => {
             onClick: handleBackgroundClick
         },
         {
-            path: "#",  
+            path: "/chatz",
             name: "ChatRoom",
             icon: <IoIosChatboxes />,
             onClick: toggleChat
@@ -218,10 +171,10 @@ const Sidebar = ({ roomId, children }) => {
             icon: <CgNotes />
         },
         {
-            path: "#",
+            path: "/white",
             name: "Whiteboard",
             icon: <FaChalkboard />,
-            onClick: () => setShowWhiteboard(prev => !prev)
+            onClick: handleWhiteboardClick 
         },
         {
             path: "/timer",
@@ -236,82 +189,73 @@ const Sidebar = ({ roomId, children }) => {
         }
     ];
 
+    // Use Effects
 
-    const handleCallClick = () => {
-            console.log("Yo");
-    };
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.volume = volume;
+        }
+    }, [volume]);
 
-    const handleInviteClick = () => {
-        navigator.clipboard.writeText(roomId)
-            .then(() => {
-                alert('Text copied to clipboard');
-            })
-            .catch(err => {
-                console.error('Failed to copy text:', err);
-            });
-    };
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.load(); 
+        }
+    }, [background]);
 
-    const startSharing = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            console.log('Stream obtained:', stream);
-            
-            const peerConnection = new RTCPeerConnection();
-            peerConnRef.current = peerConnection; // Store peerConnection in ref
-            
-            stream.getTracks().forEach(track => {
-                console.log('Adding track:', track);
-                peerConnection.addTrack(track, stream);
-            });
-            
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            console.log('Sending offer:', offer);
-            socket.emit('offer', { room: roomId, offer });
-            
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    console.log('Sending ICE candidate:', event.candidate);
-                    socket.emit('ice-candidate', { room: roomId, candidate: event.candidate });
-                }
-            };
-            
-            peerConnection.ontrack = (event) => {
-                console.log('Track event:', event);
-                if (screenRef.current) {
-                    screenRef.current.srcObject = event.streams[0];
-                    console.log('Stream received and set to screenRef:', event.streams[0]);
-                }
-            };
-            
-            setIsSharing(true);
-        } catch (error) {
-            console.error('Error sharing screen:', error);
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = isMuted;
         }
-    };
-    
-    const stopSharing = () => {
-        const peerConnection = peerConnRef.current;
-        if (peerConnection) {
-            peerConnection.getSenders().forEach(sender => {
-                console.log('Removing track:', sender);
-                peerConnection.removeTrack(sender);
-            });
-            peerConnection.close();
-            peerConnRef.current = null;
+    }, [isMuted]);
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.volume = volume;
+            videoRef.current.muted = isMuted;
         }
-        setIsSharing(false);
-        
-        if (screenRef.current && screenRef.current.srcObject) {
-            const stream = screenRef.current.srcObject;
-            stream.getTracks().forEach(track => {
-                console.log('Stopping track:', track);
-                track.stop();
-            });
-        }
-        if (screenRef.current) {
-            screenRef.current.srcObject = null;
-        }
+    }, [background, volume, isMuted]);
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                const response = await axios.get('http://localhost:8081/user-details')
+                setUsername(response.data.username); // Set the username from userDetails
+
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+            }
+        };
+
+        fetchUserDetails();
+    }, []);
+
+
+    useEffect(() => {
+        if (!socket || !username) return;
+        socket.emit('joinRoom', {roomId: roomId, username: username });
+
+        socket.on('backgroundUpdate', (data) => {
+            setBackground(data.background);
+        });
+
+        socket.on('widgetUpdate', (data) => {
+        });
+        socket.on('updateUsernames', (data) => {
+            setUsernames(data);
+        });
+
+
+        return () => {
+            socket.off('backgroundUpdate');
+            socket.off('widgetUpdate');
+            socket.off('updateUsernames');
+        };
+    }, [socket, roomId, username]);
+
+    const handleWhiteboardSizeSelect = (size) => {
+        setWhiteboardSize(size); 
+        setShowWhiteboard(false); 
     };
 
     return (
@@ -319,13 +263,16 @@ const Sidebar = ({ roomId, children }) => {
             <div style={{ width: isOpen ? "200px" : "50px" }} className="sidebar">
                 <div className="top_section">
                     <h1 style={{ display: isOpen ? "block" : "none" }} className="logo">Logo</h1>
+                    <div className="user-initials-circle">
+                        <h1>Dick</h1>
+                    </div>
                     <div style={{ marginLeft: isOpen ? "50px" : "0px" }} className="bars">
                         <FaBars onClick={toggle} />
                     </div>
                 </div>
                 {
                     menuItem.map((item, index) => (
-                        <NavLink 
+                        <NavLink
                             to={item.path}
                             key={index}
                             className="link"
@@ -340,7 +287,26 @@ const Sidebar = ({ roomId, children }) => {
                 }
             </div>
             <main>
-                <h1 className="headtitle">S T U D Y S P H E R E</h1>
+                <div className="header-container">
+                    <h1 className="headtitle">S T U D Y S P H E R E</h1>
+                    <div className="members-list-container">
+                        <button onClick={toggleMembersList}>
+                            {showMembers ? 'Hide Room Members' : 'Show Room Members'}
+                        </button>
+                        {showMembers && (
+                            <ul className="members-list">
+                                {usernames.map((name, index) => (
+                                    <li
+                                        key={index}
+                                        className={name === username ? 'highlighted' : ''}
+                                    >
+                                        {name}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
                 {children}
                 {isBackgroundPopupOpen && (
                     <div className="popup-menu">
@@ -349,8 +315,6 @@ const Sidebar = ({ roomId, children }) => {
                             <button onClick={() => handleBackgroundSelect(cafe)}>Cafe</button>
                             <button onClick={() => handleBackgroundSelect(park)}>Park</button>
                             <button onClick={() => handleBackgroundSelect(beach)}>Beach</button>
-                            <button onClick={() => handleBackgroundSelect(beach)}>Apartment</button>
-                            <button onClick={() => handleBackgroundSelect(beach)}>City</button>
                         </div>
                     </div>
                 )}
@@ -390,10 +354,10 @@ const Sidebar = ({ roomId, children }) => {
                     </div>
                 )}
                 {showTimer && (
-                    <div 
-                        className="timer-widget" 
-                        style={{ position: 'absolute', left: timerPosition.x, top: timerPosition.y }} 
-                        draggable 
+                    <div
+                        className="timer-widget"
+                        style={{ position: 'absolute', left: timerPosition.x, top: timerPosition.y }}
+                        draggable
                         onDragStart={(e) => handleDragStart(e, 'timer')}
                     >
                         <div className="timer-header">
@@ -401,40 +365,42 @@ const Sidebar = ({ roomId, children }) => {
                             <button onClick={handleTimerClose}>Close</button>
                         </div>
                         <div className="pomodoro-timer">
-                            <Timer/>
+                            <Timer />
                         </div>
                     </div>
                 )}
                 {showTodo && (
-                    <div 
-                        className="todo-widget" 
-                        style={{ position: 'absolute', left: todoPosition.x, top: todoPosition.y }} 
-                        draggable 
+                    <div
+                        className="todo-widget"
+                        style={{ position: 'absolute', left: todoPosition.x, top: todoPosition.y }}
+                        draggable
                         onDragStart={(e) => handleDragStart(e, 'todo')}
                     >
-                        <ToDo roomId={roomId}/>
+                        <ToDo roomId={roomId} onClose={handleTodoClose} />
                     </div>
                 )}
                 {showChat && <Chat roomId={roomId} />}
-                {showWhiteboard && (
-                        <WhiteboardWidget roomId ={ roomId }/>
+                {whiteboardSize === null && showWhiteboard && (
+                    <div className="size-menu" >
+                        <button onClick={() => handleWhiteboardSizeSelect('small')}>Small (300x300)</button>
+                        <button onClick={() => handleWhiteboardSizeSelect('medium')}>Medium (600x450)</button>
+                        <button onClick={() => handleWhiteboardSizeSelect('large')}>Large (650x500)</button>
+                    </div>
                 )}
-                {background && 
-                    <video ref={videoRef} autoPlay loop muted={isMuted} className="background-video">
-                        <source src={background} type="video/mp4" />
-                    </video>
-                }
-            <div>
-            <button onClick={startSharing} disabled={isSharing}>Start Sharing</button>
-            <button onClick={stopSharing} disabled={!isSharing}>Stop Sharing</button>
-            <video ref={screenRef} autoPlay muted style={{ width: '80%', margin: 'auto', zIndex:5 }} />
-            </div>
+                {whiteboardSize && (
+                    <WhiteboardWidget roomId={roomId} size={whiteboardSize} onClose={handleWhiteboardClose} />
+                )}
+                <div>
+                    <button>Start Sharing</button>
+                    <button>Stop Sharing</button>
+                    <video autoPlay playsInline></video>
+                    <video autoPlay playsInline></video>
+                </div>
                 <div className="upper-right-box">
                     <div className="box-title">My Room</div>
                     <div className="box-button-container">
                         <button className="box-button" onClick={handleInviteClick}>Invite</button>
-                        <button className="box-button" onClick={handleCallClick}>Call</button>
-
+                        <button className="box-button">Call</button>
                     </div>
                 </div>
             </main>

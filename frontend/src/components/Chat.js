@@ -13,14 +13,12 @@ const Chat = ({ roomId }) => {
 
 
     useEffect(() => {
-
         const fetchUserDetails = async () => {
             try {
                 const response = await axios.get('http://localhost:8081/user-details');
                 setUsername(response.data.username || 'Anonymous'); 
             } catch (error) {
                 console.error('Error fetching user details:', error);
-                setUsername('Anonymous'); 
             }
         };
 

@@ -11,12 +11,13 @@ const Landing = () => {
     const socket = useSocket();
     const [roomId, setRoomId] = useState('');
     const [error, setError] = useState(null);
+    const [username, setUsername] = useState('');
 
 
     useEffect(() => {
         axios.get('http://localhost:8081/user-details') 
             .then(response => {
-                
+                setUsername(response.data.username);
             })
             .catch(error => {
                 if (error.response && error.response.status === 401) {
@@ -33,14 +34,13 @@ const Landing = () => {
         
         socket.on('error', (errorMessage) => {
             setError(errorMessage);
-            console.log(error);
         });
 
         socket.on('roomJoined', (roomId) => {
             navigate(`/dashboard/${roomId}`);
         });
 
-        socket.on('roomCreated', (roomId)=>{
+        socket.on('roomCreated', (roomId)=>{           
             navigate(`/dashboard/${roomId}`);
         })
 
@@ -58,7 +58,7 @@ const Landing = () => {
 
     const handleJoinRoom = async () => {
         if (roomId) {
-            socket.emit('joinRoom', roomId);
+            socket.emit('joinRoom', {roomId: roomId, username: username});
         } else {
             alert('Please enter a room ID');
         }
@@ -85,6 +85,7 @@ const Landing = () => {
                 </div>
                 <button className="button" onClick={handleSettings}>Settings</button>
             </div>
+            {error && <div className="error-message">{error}</div>}
         </div>
     );
 };

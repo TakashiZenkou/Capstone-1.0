@@ -8,6 +8,7 @@ import Landing from './pages/Landing.jsx';
 import Settings from './pages/Settings.jsx';
 import Logout from './pages/Logout.jsx';
 import { SocketProvider } from './SocketContext';
+import BreakoutRoom from './pages/BreakoutRoom.jsx'
 
 const App = () => {
   return (
@@ -21,7 +22,8 @@ const App = () => {
               <Route path="/login"element={<Login/>}/>
               <Route path="/landing"element={<Landing/>}/>
               <Route path="/settings"element={<Settings/>}/>
-              <Route path="/logout"element={<Logout/>}/>   
+              <Route path="/logout"element={<Logout/>}/>
+              <Route path="/break" element={<BreakoutRoom/>}/>
             </Routes>
           </BrowserRouter>
       </SocketProvider>   

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaThLarge, FaChalkboard, FaBars } from "react-icons/fa";
+import { FaChalkboard, FaBars } from "react-icons/fa";
 import { AiOutlinePicture } from "react-icons/ai";
 import { CgNotes, CgProfile } from "react-icons/cg";
 import { IoIosChatboxes, IoIosAlarm } from "react-icons/io";
@@ -14,11 +14,12 @@ import beach from '../assets/beach.mp4';
 import { useSocket } from '../SocketContext';
 import Chat from './Chat';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 axios.defaults.withCredentials = true;
 
 const Sidebar = ({ roomId, children }) => {
-
+    const navigate = useNavigate();
     const [showChat, setShowChat] = useState(false);
     const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +40,10 @@ const Sidebar = ({ roomId, children }) => {
 
     // Functions
 
-    const toggle = () => setIsOpen(!isOpen);
+    const toggle = (e) => {
+        e.preventDefault();
+        setIsOpen(!isOpen)
+    };
 
     const toggleChat = (e) => {
         e.preventDefault();
@@ -141,12 +145,17 @@ const Sidebar = ({ roomId, children }) => {
         setShowMembers(prevShowMembers => !prevShowMembers);
     };
 
+    const handleLogout = () => {
+        axios.get('http://localhost:8081/logout')
+            .then(() => {
+                navigate('/login');
+            })
+            .catch((err) => {
+                console.error('Logout failed', err);
+            });
+    };
+
     const menuItem = [
-        {
-            path: "/",
-            name: "Dashboard",
-            icon: <FaThLarge />
-        },
         {
             path: "/backgrounds",
             name: "Backgrounds",
@@ -262,10 +271,6 @@ const Sidebar = ({ roomId, children }) => {
         <div className="containerr" onDragOver={handleDragOver} onDrop={handleDrop}>
             <div style={{ width: isOpen ? "200px" : "50px" }} className="sidebar">
                 <div className="top_section">
-                    <h1 style={{ display: isOpen ? "block" : "none" }} className="logo">Logo</h1>
-                    <div className="user-initials-circle">
-                        <h1>Dick</h1>
-                    </div>
                     <div style={{ marginLeft: isOpen ? "50px" : "0px" }} className="bars">
                         <FaBars onClick={toggle} />
                     </div>
@@ -285,10 +290,20 @@ const Sidebar = ({ roomId, children }) => {
                         </NavLink>
                     ))
                 }
+
+                <div className="profile-section">
+                    <div className="username-section">
+                        {username && <p className="username-text">{username}</p>}
+                    </div>
+                    <button className="logout-button" onClick={handleLogout}>Logout</button>
+                </div>
             </div>
             <main>
                 <div className="header-container">
                     <h1 className="headtitle">S T U D Y S P H E R E</h1>
+                    <div className="room-id-display">
+                        <h2>Room ID: {roomId}</h2>
+                    </div>
                     <div className="members-list-container">
                         <button onClick={toggleMembersList}>
                             {showMembers ? 'Hide Room Members' : 'Show Room Members'}

@@ -42,7 +42,7 @@ main {
   color: #fff;
   height: 100vh;
   width: 200px;
-  transition: all 0.5s;
+  transition: width 0.5s ease-in-out;
 }
 
 .top_section {
@@ -319,4 +319,52 @@ main {
 .members-list li.highlighted {
   font-weight: bold;
   color: #ff5722; /* Example color for highlighting */
+}
+
+.room-id-display {
+  font-size: 1rem;
+  font-weight: bold;
+  color: hsla(315, 14%, 95%, 0.911);
+  z-index: 10;
+}
+
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.profile-section {
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.username-section {
+  margin-bottom: 10px;
+}
+
+.username-text {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.logout-button {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #c9302c;
 }

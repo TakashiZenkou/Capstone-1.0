@@ -201,6 +201,37 @@ const Sidebar = ({ roomId, children }) => {
     // Use Effects
 
     useEffect(() => {
+        // Function to check if room exists
+        const checkRoomExists = async () => {
+            try {
+                const roomExistsResponse = await axios.get(`http://localhost:8081/check-room/${roomId}`);
+                if (roomExistsResponse.data.exists) {
+                } else {
+                    // Room doesn't exist, check if user is logged in
+                    try {
+                        await axios.get('http://localhost:8081/user-details');
+                        // User is logged in, navigate to Landing page
+                        navigate('/landing');
+                    } catch (userDetailsError) {
+                        if (userDetailsError.response && userDetailsError.response.status === 401) {
+                            // User is not logged in, navigate to Login page
+                            navigate('/login');
+                        } else {
+                            console.error('Error checking user details:', userDetailsError);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking room:', error);
+            }
+        };
+
+        checkRoomExists();
+    }, [navigate, roomId, socket]);
+
+
+
+    useEffect(() => {
         if (videoRef.current) {
             videoRef.current.volume = volume;
         }

@@ -241,6 +241,15 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
     }
 });
 
+app.get('/check-room/:roomId', (req, res) => {
+    const { roomId } = req.params;
+    if (rooms.has(roomId)) {
+        res.json({ exists: true });
+    } else {
+        res.json({ exists: false });
+    }
+});
+
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {

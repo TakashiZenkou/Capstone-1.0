@@ -87,7 +87,7 @@ main {
   color: #000;
 }
 
-/* Popup Menu Styles */
+
 .popup-menu {
   position: absolute;
   top: 20%;
@@ -121,14 +121,14 @@ main {
   border-radius: 4px;
   font-size: 16px;
   transition: background 0.3s ease;
-  width: 200px; /* Fixed width for buttons */
+  width: 200px; 
 }
 
 .popup-buttons button:hover {
   background: #c0c0c0;
 }
 
-/* Timer Widget Styles */
+
 .timer-widget {
   position: absolute;
   top: 20%;
@@ -141,7 +141,7 @@ main {
   width: 300px;
   max-height: 400px;
   overflow-y: auto;
-  cursor: move; /* Indicate that the widget is draggable */
+  cursor: move; 
 }
 
 .timer-header {
@@ -162,7 +162,7 @@ main {
   margin: 20px 0;
 }
 
-/* ToDo Widget Styles */
+
 .todo-widget {
   position: absolute;
   bottom: 20%;
@@ -174,7 +174,7 @@ main {
   z-index: 1000;
 }
 
-/* Upper Right Box Styles */
+
 .upper-right-box {
   position: absolute;
   top: 120px;
@@ -210,7 +210,7 @@ main {
   border-radius: 4px;
   font-size: 16px;
   transition: background 0.3s ease;
-  flex: 1; /* Button takes up available space */
+  flex: 1; 
 }
 
 .box-button:hover {
@@ -287,18 +287,18 @@ main {
 
 
 .size-menu {
-  position: absolute; /* Ensure the menu is positioned */
-  top: 10px; /* Adjust as needed */
-  left: 10px; /* Adjust as needed */
-  z-index: 10; /* Higher than the background video */
-  padding: 10px; /* Optional: Add some padding */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add some shadow */
+  position: absolute; 
+  top: 10px; 
+  left: 10px; 
+  z-index: 10; 
+  padding: 10px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
 
 .members-list-container {
   position: absolute;
-  top: 10px; /* Adjust this value to move it further down */
+  top: 10px; 
   left:500px;
   z-index: 10;
   background: #549AAB;
@@ -318,7 +318,7 @@ main {
 
 .members-list li.highlighted {
   font-weight: bold;
-  color: #ff5722; /* Example color for highlighting */
+  color: #ff5722;
 }
 
 .room-id-display {

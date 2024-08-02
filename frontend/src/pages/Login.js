@@ -30,23 +30,12 @@ function Login() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log("Form values:", values);
-
-
         const validationErrors = Validation(values);
         setErrors(validationErrors);
-
-        console.log("Validation errors:", validationErrors);
-
-
         if (Object.keys(validationErrors).length === 0) {
-            console.log("Attempting to post");
-            console.log(values);
-
             axios.post('http://localhost:8081/login', values)
                 .then(res => {
                     if (res.status === 200) {
-                        console.log("Navigation to /Landing");
                         navigate('/Landing');
                     } else {
                         alert("No record existed");

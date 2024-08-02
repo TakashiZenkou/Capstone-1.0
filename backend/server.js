@@ -18,7 +18,7 @@ const io = socketIo(server, {
     }
 });
 
-// Setup CORS
+
 const corsOptions = {
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT'],
@@ -30,7 +30,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
-// Setup session
+
 app.use(session({
     secret: 'your_secure_key',
     resave: false,
@@ -46,7 +46,7 @@ const pool = new Pool({
     port: 5432 
 });
 
-// Socket.IO handling
+
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
@@ -61,7 +61,6 @@ io.on('connection', (socket) => {
         if (rooms.has(roomId)) {
             socket.join(roomId);
             rooms.get(roomId).set(socket.id, username);
-            console.log(Array.from(rooms.get(roomId).values()));
             io.to(roomId).emit('updateUsernames', Array.from(rooms.get(roomId).values()));
             socket.emit('roomJoined', roomId);
         } else {
@@ -234,10 +233,8 @@ app.put('/update-user', isAuthenticated, async (req, res) => {
         values.push(userId);
         const query = `UPDATE Users SET ${updates.join(', ')} WHERE id = $${index}`;
         await pool.query(query, values);
-
         res.json({ message: 'User details updated successfully' });
     } catch (err) {
-        console.error('Error updating user details:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

@@ -26,16 +26,13 @@ function Signup() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log("Form submitted with values:", values);
         const validationErrors = Validation(values);
         setErrors(validationErrors);
-        console.log("Validation errors:", validationErrors);
     
         if (Object.keys(validationErrors).length === 0) {
             console.log("No validation errors, proceeding to send the request.");
             axios.post('http://localhost:8081/signup', values)
                 .then(res => {
-                    console.log("Signup successful:", res.data);
                     navigate('/');
                 })
                 .catch(err => {

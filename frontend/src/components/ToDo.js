@@ -13,16 +13,16 @@ const ToDo = ({ roomId, onClose }) => {
     const [taskInput, setTaskInput] = useState('');
     const [priority, setPriority] = useState('Low');
     const [showCompleted, setShowCompleted] = useState(false);
-    const [username, setUsername] = useState(''); // Initialize username state
+    const [username, setUsername] = useState('');
 
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
                 const response = await axios.get('http://localhost:8081/user-details', {
-                    withCredentials: true // Include cookies in the request
+                    withCredentials: true
                 });
 
-                setUsername(response.data.username); // Set the username from userDetails
+                setUsername(response.data.username);
             } catch (error) {
                 console.error('Error fetching user details:', error);
             }
@@ -58,7 +58,7 @@ const ToDo = ({ roomId, onClose }) => {
                 text: taskInput,
                 priority,
                 completed: false,
-                user: username // Include the username
+                user: username 
             };
             const updatedTasks = [...tasks, newTask];
             setTasks(updatedTasks);

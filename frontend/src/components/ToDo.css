@@ -91,7 +91,7 @@
   border-radius: 3px;
   font-size: 0.8em;
   text-transform: capitalize;
-  margin-right: 10px; /* Add space between priority and the trash icon */
+  margin-right: 10px;
 }
 
 .task-priority.low {

@@ -4,6 +4,7 @@ import Validation from './SignupValidation';
 import axios from 'axios';
 
 function Signup() {
+    const [successMessage, setSuccessMessage] = useState('');
     const [values, setValues] = useState({
         firstname: '',
         lastname: '',
@@ -33,7 +34,10 @@ function Signup() {
             console.log("No validation errors, proceeding to send the request.");
             axios.post('http://localhost:8081/signup', values)
                 .then(res => {
-                    navigate('/');
+                    setSuccessMessage('Registration Successful');
+                    setTimeout(() => {
+                        navigate('/');
+                    }, 5000);
                 })
                 .catch(err => {
                     console.error("Error during signup:", err);
@@ -93,6 +97,7 @@ function Signup() {
         <div className='d-flex vh-100 justify-content-center align-items-center bg-primary'>
             <div className='p-3 bg-white rounded w-25'>
                 <h2>Sign Up</h2>
+                {successMessage && <div className='alert alert-success'>{successMessage}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className='mb-3'>
                         <label htmlFor="firstname"><strong>First Name</strong></label>
